@@ -1,7 +1,6 @@
-from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from api.v1 import films
+from api.v1 import basic
 from core import config
 from redis.asyncio import Redis
 
@@ -11,7 +10,6 @@ import logging
 from core.logger import LOGGING
 
 from core import config
-from db import elastic
 from db import redis
 
 
@@ -41,14 +39,12 @@ if __name__ == '__main__':
 @app.on_event('startup')
 async def startup():
     redis.redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT)
-    elastic.es = AsyncElasticsearch(hosts=[f'http://{config.ELASTIC_HOST}:{config.ELASTIC_PORT}'])
                                            
 
 @app.on_event('shutdown')
 async def shutdown():
     await redis.redis.close()
-    await elastic.es.close()
 
 
 
-app.include_router(films.router, prefix='/api/v1/films', tags=['films']) 
+app.include_router(basic.router, prefix='/api/v1', tags=['basic'])
