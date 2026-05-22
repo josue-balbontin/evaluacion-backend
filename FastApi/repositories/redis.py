@@ -38,17 +38,20 @@ async def set_cache(redis, key: str, value: Any, expire: int = 300) -> None:
 
 
 
-def decorator_cache(key_name: str, expire: int = 300):
+def decorator_cache(prefix: str, expire: int = 300):
     def decorator(func):
         @wraps(func)
         async def wrapper(self, *args, **kwargs):
-            cached_data = await get_cache(self.redis, key_name)
+            args_str = "_".join([str(arg) for arg in args])
+            cache_key = f"{prefix}_{args_str}" if args_str else prefix
+
+            cached_data = await get_cache(self.redis, cache_key)
             if cached_data:
                 return cached_data
 
             result = await func(self, *args, **kwargs)
 
-            await set_cache(self.redis, key_name, result, expire)
+            await set_cache(self.redis, cache_key, result, expire)
 
             return result
         return wrapper

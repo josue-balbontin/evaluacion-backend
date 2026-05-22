@@ -1,10 +1,6 @@
-from uuid import UUID
-
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-
 from services.tablesService import TableService, get_tables_service
-
+from schemas.TableType import TableType
 
 
 
@@ -12,15 +8,11 @@ router = APIRouter()
 
 root = 'tables'
 
-class Table(BaseModel):
-    id: UUID
-    name: str
-    seats: int
-    description: str
+
     
-@router.get(f'/{root}/types' , response_model=list[Table])
+@router.get(f'/{root}/types' , response_model=list[TableType])
 async def get_table_types(service: TableService=Depends(get_tables_service)):
 
-    results : list[Table] = await service.get_tables_type()
+    results : list[TableType] = await service.get_tables_type()
 
     return results
