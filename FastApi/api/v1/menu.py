@@ -16,6 +16,9 @@ root = 'menu'
 
     
 @router.get(f'/{root}' , response_model=list[Menu])
-async def get_menu_items(date_value: date ,service: menuService = Depends(get_menu_service),):
+async def get_menu_items(
+    date_value: date = Query(..., alias='date'),
+    service: menuService = Depends(get_menu_service),
+):
     results: list[Menu] = await service.get_menu_items(date_value)
     return results
