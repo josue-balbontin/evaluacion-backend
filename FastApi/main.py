@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from db.postgress import close_db_pool, get_db_pool
+from api.v1 import tables
+from db.postgress import close_db_connection_pool, get_db_connection_pool
 from core import config
 from redis.asyncio import Redis
 from contextlib import asynccontextmanager
@@ -19,11 +20,11 @@ from api.v1 import healthz
 async def lifespan(app: FastAPI):
     # Esto se ejecuta al ENCENDER la API
     print("Iniciando conexión a PostgreSQL...")
-    await get_db_pool()
+    await get_db_connection_pool()
     yield
     # Esto se ejecuta al APAGAR la API
     print("Cerrando conexión a PostgreSQL...")
-    await close_db_pool()
+    await close_db_connection_pool()
 
 app = FastAPI(
     title=config.PROJECT_NAME,
@@ -60,3 +61,5 @@ async def shutdown():
 
 
 app.include_router(healthz.router, prefix='/api/v1', tags=['healthz'])
+
+app.include_router(tables.router, prefix='/api/v1', tags=['tables'])
