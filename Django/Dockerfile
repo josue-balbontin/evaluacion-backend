@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev gcc && \
+    libpq-dev gcc dos2unix && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -14,8 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN chmod +x /app/entrypoint.sh
+# Convert CRLF to LF (Windows -> Linux)
+RUN dos2unix /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Explicitly use bash to avoid exec format errors from missing shebangs
+ENTRYPOINT ["bash", "/app/entrypoint.sh"]
