@@ -98,3 +98,7 @@ Alternativamente, si tienes tu entorno virtual configurado localmente, simplemen
 
 
 ## IMPLEMENTACION DEFENSA
+
+se implemento el  el endpoint get api/v1/restaurtas/popular/... que devuelve los restaurantes por numero de reserva confirmadas se implemento un repositorio y un servicio para esto , se realizo una transformador de datos en el servicio que detecta el 7d , 30d o 90d y cambia timedelta para luego luego transformarlo el date para poder usarlo en la consulta sql que esta en repositorio, luego se hizo la consula sql para hacer obtener todos los datos y contar los similares de fechas a travez de inner join entre las tres tablas  . esto se implemento por que permite un manejo facil de los restaurantes solo teniendo que implementar una consulta sql y recibiendo todos estos 
+
+falto implementar el adicionalmente que era que enriquezca cada restaurante con sus mesas mas  reservadas esto se podia hacer con una consulta sql adicional para obtener las messas mas reservadas por cada restaurante y se podia hacer un bucle para agregar esa informacion a cada restaurante , esto se me paso por alto por falta de tiempo y por no entender bien la logica del negocio que se queria implementar en el frontend , yo hubiera implementado una nueva api para esto y las capas de servicio y repositorio para esta nueva api , por falta de tiempo para implementar todo lo que se queria implementar en el frontend

@@ -50,11 +50,11 @@ class restaurantService:
 
         now = datetime.now(zone)
         if window == '7d':
-            return now, now + timedelta(days=7)
+            return now - timedelta(days=7), now
         if window == '30d':
-            return now, now + timedelta(days=30)
+            return now - timedelta(days=30), now
         if window == '90d':
-            return now, now + timedelta(days=90)
+            return now - timedelta(days=90), now
         raise HTTPException(status_code=400, detail='invalid window')
 
     
@@ -62,18 +62,15 @@ class restaurantService:
         
         start_date, end_date = self._get_window(period, timezone)
 
-        restaurant_reservas=  await self.restaurantRepository.get_popular_restaurants(start_date, end_date, timezone)
-        
-        
-        map_result = []
-        for restaurant, reservas in restaurant_reservas:
-            restaurant_data = restaurant.model_dump()
-            restaurant_data['reservas_count'] = reservas
-            map_result.append(restaurant_data)
-        return map_result
+        restaurant_reservas=  await self.restaurantRepository.get_popular_restaurants(start_date.date(), end_date.date(), timezone)
+    
+
+        return  restaurant_reservas
 
 
 def get_restaurant_service(
     repository: restaurantRepository = Depends(get_restaurant_repository),
 ) -> restaurantService:
     return restaurantService(repository)
+
+

@@ -135,15 +135,23 @@ class restaurantRepository(AbstractRepository, AbstractSearch):
         return await self.get_by_id(restaurant_id)
     
     @decorator_cache('popular_restaurants', 300)
-    async def get_popular_restaurants(self, start_date : datetime , end_date : datetime , timezone: str):
+    async def get_popular_restaurants(self, start_date : date , end_date : date , timezone: str):
 
         query = """
-            SELECT *
+            SELECT r.id, r.name, r.slug, r.description, r.address, r.phone,
+                   r.opening_time, r.closing_time, r.timezone,
+                   COUNT(status.id) as reservas_count
             FROM content.restaurant as r
-            INNER JOIN content.reservation as res ON r.id = res.restaurant_id
-            where res.reservation_time >= $1 AND res.reservation_time <= $2
+            LEFT JOIN content.reservation as res 
+                   ON r.id = res.restaurant_id 
+                  AND res.reservation_date >= $1 
+                  AND res.reservation_date <= $2
+            LEFT JOIN content.reservation_status as status 
+                   ON res.status_id = status.id
+                  AND (status.name ILIKE '%confirm%' OR status.name ILIKE '%Confirmada%')
+            GROUP BY r.id
+            ORDER BY reservas_count DESC
         """
-
 
         async with self.conexion.acquire() as connection:
             rows = await connection.fetch(query, start_date, end_date)
