@@ -1,5 +1,5 @@
 import asyncpg
-from core import config
+from fastapi_core import config
 
 db_connection_pool = None
 

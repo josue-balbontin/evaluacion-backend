@@ -1,17 +1,25 @@
 from datetime import date, time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from uuid import UUID
 
 from fastapi import Depends
 
 from db.postgress import get_db_connection_pool
+from repositories.abstract.repository import AbstractRepository
 
 TIME_SLOTS = [time(18, 0), time(19, 30), time(21, 0)]
 
 
-class reservationsRepository:
+class reservationsRepository(AbstractRepository):
+
     def __init__(self, conexion):
         self.conexion = conexion
+
+    async def get_by_id(self, id: Any) -> Any:
+        pass
+        
+    async def list_all(self, limit: int, offset: int, **kwargs) -> List[Any]:
+        return []
 
     async def get_availability(
         self,
@@ -75,5 +83,5 @@ class reservationsRepository:
 
 def get_reservations_repository(
     conexion = Depends(get_db_connection_pool),
-) -> reservationsRepository:
+) -> AbstractRepository:
     return reservationsRepository(conexion)

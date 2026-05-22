@@ -5,7 +5,7 @@ from fastapi import Depends
 
 from db.postgress import get_db_connection_pool
 from db.redis import get_redis
-from repositories.redis import decorator_cache
+from repositories.redis.redis import decorator_cache
 
 from models.table_type import TableType
 

@@ -1,28 +1,33 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from uuid import UUID
 
 from fastapi import Depends
 
 from db.postgress import get_db_connection_pool
 from db.redis import get_redis
-from repositories.redis import decorator_cache
+from repositories.redis.redis import decorator_cache, RedisCache
+from repositories.abstract.repository import AbstractRepository
+from repositories.abstract.search import AbstractSearch
+from repositories.redis.cache import AbstractCache
+
 from models.menu_item import MenuItem
 from models.restaurant import Restaurant
 from models.table_type import TableType
 
 
-class restaurantRepository:
-    def __init__(self, conexion, redis):
+class restaurantRepository(AbstractRepository, AbstractSearch):
+    def __init__(self, conexion, cache: AbstractCache):
         self.conexion = conexion
-        self.redis = redis
+        self.cache = cache
 
     @decorator_cache('restaurants_list', 300)
-    async def list_restaurants(
+    async def list_all(
         self,
         limit: int,
         offset: int,
         name: Optional[str] = None,
         address: Optional[str] = None,
+        **kwargs
     ) -> List[Restaurant]:
         conditions = ["is_active = TRUE"]
         params = []
@@ -53,14 +58,17 @@ class restaurantRepository:
         async with self.conexion.acquire() as connection:
             rows = await connection.fetch(query, *params)
             return [Restaurant(**dict(row)) for row in rows]
+            
+    async def list_restaurants(self, limit: int, offset: int, name: Optional[str] = None, address: Optional[str] = None) -> List[Restaurant]:
+        return await self.list_all(limit, offset, name=name, address=address)
 
-    async def search_restaurants(
+    async def search(
         self,
         query_text: str,
         limit: int,
         offset: int,
     ) -> List[Restaurant]:
-        search = f"%{query_text}%"
+        search_param = f"%{query_text}%"
         query = """
             SELECT id, name, slug, description, address, phone,
                    opening_time, closing_time, timezone
@@ -78,11 +86,14 @@ class restaurantRepository:
         """
 
         async with self.conexion.acquire() as connection:
-            rows = await connection.fetch(query, search, limit, offset)
+            rows = await connection.fetch(query, search_param, limit, offset)
             return [Restaurant(**dict(row)) for row in rows]
+            
+    async def search_restaurants(self, query_text: str, limit: int, offset: int) -> List[Restaurant]:
+        return await self.search(query_text, limit, offset)
 
     @decorator_cache('restaurants_detail', 300)
-    async def get_restaurant_detail(self, restaurant_id: UUID):
+    async def get_by_id(self, restaurant_id: Any) -> Optional[tuple]:
         restaurant_query = """
             SELECT id, name, slug, description, address, phone,
                    opening_time, closing_time, timezone
@@ -118,10 +129,13 @@ class restaurantRepository:
         menu_items = [MenuItem(**dict(row)) for row in menu_rows]
 
         return restaurant, table_types, menu_items
+        
+    async def get_restaurant_detail(self, restaurant_id: UUID):
+        return await self.get_by_id(restaurant_id)
 
 
 def get_restaurant_repository(
     conexion = Depends(get_db_connection_pool),
-    redis = Depends(get_redis),
-) -> restaurantRepository:
-    return restaurantRepository(conexion, redis)
+    redis_client = Depends(get_redis),
+) -> AbstractRepository:
+    return restaurantRepository(conexion, RedisCache(redis_client))

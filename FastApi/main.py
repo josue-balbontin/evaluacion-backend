@@ -2,13 +2,13 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from api.v1 import menu, reservations, restaurants, tables
 from db.postgress import close_db_connection_pool, get_db_connection_pool
-from core import config
+from fastapi_core import config
 from redis.asyncio import Redis
 from contextlib import asynccontextmanager
 
 import uvicorn
 import logging
-from core.logger import LOGGING
+from fastapi_core.logger import LOGGING
 
 from db import redis
 

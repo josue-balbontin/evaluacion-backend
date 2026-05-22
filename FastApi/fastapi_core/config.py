@@ -2,7 +2,7 @@ import os
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
 from logging import config as logging_config
-from core.logger import LOGGING
+from fastapi_core.logger import LOGGING
 
 # Apply logging settings
 logging_config.dictConfig(LOGGING)
