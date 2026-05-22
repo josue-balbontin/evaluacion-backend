@@ -5,6 +5,7 @@ from fastapi import Depends
 
 from db.postgress import get_db_connection_pool
 from db.redis import get_redis
+from repositories.redis import decorator_cache
 from models.menu_item import MenuItem
 from models.restaurant import Restaurant
 from models.table_type import TableType
@@ -15,6 +16,7 @@ class restaurantRepository:
         self.conexion = conexion
         self.redis = redis
 
+    @decorator_cache('restaurants_list', 300)
     async def list_restaurants(
         self,
         limit: int,
@@ -79,6 +81,7 @@ class restaurantRepository:
             rows = await connection.fetch(query, search, limit, offset)
             return [Restaurant(**dict(row)) for row in rows]
 
+    @decorator_cache('restaurants_detail', 300)
     async def get_restaurant_detail(self, restaurant_id: UUID):
         restaurant_query = """
             SELECT id, name, slug, description, address, phone,
