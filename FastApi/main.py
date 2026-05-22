@@ -1,24 +1,36 @@
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from api.v1 import basic
+from db.postgress import close_db_pool, get_db_pool
 from core import config
 from redis.asyncio import Redis
-
+from contextlib import asynccontextmanager
 
 import uvicorn
 import logging
 from core.logger import LOGGING
 
-from core import config
 from db import redis
 
 
+from api.v1 import healthz
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Esto se ejecuta al ENCENDER la API
+    print("Iniciando conexión a PostgreSQL...")
+    await get_db_pool()
+    yield
+    # Esto se ejecuta al APAGAR la API
+    print("Cerrando conexión a PostgreSQL...")
+    await close_db_pool()
 
 app = FastAPI(
     title=config.PROJECT_NAME,
     docs_url='/api/openapi',
     openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
+    lifespan=lifespan,
 )
 
 if __name__ == '__main__':
@@ -47,4 +59,4 @@ async def shutdown():
 
 
 
-app.include_router(basic.router, prefix='/api/v1', tags=['basic'])
+app.include_router(healthz.router, prefix='/api/v1', tags=['healthz'])
