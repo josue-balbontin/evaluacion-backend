@@ -1,127 +1,120 @@
-import uuid
+# This is an auto-generated Django model module.
+# You'll have to do the following manually to clean this up:
+#   * Rearrange models' order
+#   * Make sure each model has one field with primary_key=True
+#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
+#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+# Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
-from django.contrib.postgres.fields import ArrayField  # Necesario para el campo TEXT[] de allergens
 
-class Restaurant(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
-    slug = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, default='')
-    address = models.CharField(max_length=500, blank=True, default='')
-    phone = models.CharField(max_length=30, blank=True, default='')
-    email = models.EmailField(max_length=254, blank=True, default='')
-    website = models.URLField(max_length=500, blank=True, default='')
-    opening_time = models.TimeField(default='08:00:00')
-    closing_time = models.TimeField(default='23:00:00')
-    timezone = models.CharField(max_length=63, default='UTC')
-    is_active = models.BooleanField(default=True)
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = '"content"."restaurant"'
-    
-    def __str__(self):
-        return self.name
-
-class TableType(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='table_types')
-    name = models.CharField(max_length=120)
-    description = models.TextField(blank=True, default='')
-    seats = models.IntegerField()
-    quantity = models.IntegerField(default=1)
-    is_active = models.BooleanField(default=True)
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        db_table = '"content"."table_type"'
-
-    def __str__(self):
-        return f"{self.name} - {self.restaurant.name}"
 
 class MenuItem(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='menu_items')
+    id = models.UUIDField(primary_key=True)
+    restaurant = models.ForeignKey('Restaurant', models.DO_NOTHING)
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, default='')
-    course = models.CharField(max_length=60, default='Main')
+    description = models.TextField(blank=True, null=True)
+    course = models.CharField(max_length=60, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    # ArrayField nativo de Postgres mapeado a TEXT[] en tu DDL
-    allergens = ArrayField(models.CharField(max_length=50), blank=True, default=list)
-    is_available = models.BooleanField(default=True)
-    available_from = models.DateField(null=True, blank=True)
-    available_until = models.DateField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    allergens = models.TextField(blank=True, null=True)  # This field type is a guess.
+    is_available = models.BooleanField(blank=True, null=True)
+    available_from = models.DateField(blank=True, null=True)
+    available_until = models.DateField(blank=True, null=True)
+    created = models.DateTimeField(blank=True, null=True)
+    modified = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        db_table = '"content"."menu_item"'
+        db_table = 'menu_item'
 
-    def __str__(self):
-        return self.name
 
 class PricingTier(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    table_type = models.ForeignKey(TableType, on_delete=models.CASCADE, related_name='pricing_tiers')
+    id = models.UUIDField(primary_key=True)
+    table_type = models.ForeignKey('TableType', models.DO_NOTHING)
     name = models.CharField(max_length=120)
     price_per_seat = models.DecimalField(max_digits=10, decimal_places=2)
-    priority = models.IntegerField(default=0)
-    valid_from = models.DateTimeField(null=True, blank=True)
-    valid_until = models.DateTimeField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    priority = models.IntegerField(blank=True, null=True)
+    valid_from = models.DateTimeField(blank=True, null=True)
+    valid_until = models.DateTimeField(blank=True, null=True)
+    is_active = models.BooleanField(blank=True, null=True)
+    created = models.DateTimeField(blank=True, null=True)
+    modified = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        db_table = '"content"."pricing_tier"'
+        db_table = 'pricing_tier'
 
-    def __str__(self):
-        return self.name
 
 class Reservation(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('confirmed', 'Confirmed'),
-        ('seated', 'Seated'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
-        ('no_show', 'No Show'),
-    ]
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='reservations')
-    table_type = models.ForeignKey(TableType, on_delete=models.CASCADE, related_name='reservations')
+    id = models.UUIDField(primary_key=True)
+    restaurant = models.ForeignKey('Restaurant', models.DO_NOTHING)
+    table_type = models.ForeignKey('TableType', models.DO_NOTHING)
+    status = models.ForeignKey('ReservationStatus', models.DO_NOTHING)
     reservation_date = models.DateField()
     reservation_time = models.TimeField()
     party_size = models.IntegerField()
     customer_name = models.CharField(max_length=255)
-    customer_email = models.EmailField(max_length=254, blank=True, default='')
-    customer_phone = models.CharField(max_length=30, blank=True, default='')
-    notes = models.TextField(blank=True, default='')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='confirmed')
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    customer_email = models.CharField(max_length=254, blank=True, null=True)
+    customer_phone = models.CharField(max_length=30, blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+    created = models.DateTimeField(blank=True, null=True)
+    modified = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        db_table = '"content"."reservation"'
+        db_table = 'reservation'
 
-    def __str__(self):
-        return f"Reserva de {self.customer_name} ({self.reservation_date})"
 
 class ReservationGuest(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='guests')
+    id = models.UUIDField(primary_key=True)
+    reservation = models.ForeignKey(Reservation, models.DO_NOTHING)
     full_name = models.CharField(max_length=255)
-    email = models.EmailField(max_length=254, blank=True, default='')
-    phone = models.CharField(max_length=30, blank=True, default='')
-    dietary_notes = models.TextField(blank=True, default='')
-    is_primary = models.BooleanField(default=False)
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    email = models.CharField(max_length=254, blank=True, null=True)
+    phone = models.CharField(max_length=30, blank=True, null=True)
+    dietary_notes = models.TextField(blank=True, null=True)
+    is_primary = models.BooleanField(blank=True, null=True)
+    created = models.DateTimeField(blank=True, null=True)
+    modified = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        db_table = '"content"."reservation_guest"'
+        db_table = 'reservation_guest'
 
-    def __str__(self):
-        return self.full_name
+
+class ReservationStatus(models.Model):
+    id = models.UUIDField(primary_key=True)
+    name = models.CharField(unique=True, max_length=20)
+    created = models.DateTimeField(blank=True, null=True)
+    modified = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'reservation_status'
+
+
+class Restaurant(models.Model):
+    id = models.UUIDField(primary_key=True)
+    name = models.CharField(max_length=255)
+    slug = models.CharField(unique=True, max_length=255)
+    description = models.TextField(blank=True, null=True)
+    address = models.CharField(max_length=500, blank=True, null=True)
+    phone = models.CharField(max_length=30, blank=True, null=True)
+    opening_time = models.TimeField(blank=True, null=True)
+    closing_time = models.TimeField(blank=True, null=True)
+    timezone = models.CharField(max_length=63, blank=True, null=True)
+    is_active = models.BooleanField(blank=True, null=True)
+    created = models.DateTimeField(blank=True, null=True)
+    modified = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'restaurant'
+
+
+class TableType(models.Model):
+    id = models.UUIDField(primary_key=True)
+    restaurant = models.ForeignKey(Restaurant, models.DO_NOTHING)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True, null=True)
+    seats = models.IntegerField()
+    quantity = models.IntegerField(blank=True, null=True)
+    price_per_seat = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    is_active = models.BooleanField(blank=True, null=True)
+    created = models.DateTimeField(blank=True, null=True)
+    modified = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'table_type'
