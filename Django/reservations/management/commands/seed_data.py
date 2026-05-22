@@ -112,7 +112,7 @@ class Command(BaseCommand):
 
         today = date.today()
         reservations = []
-        for i in range(320):
+        for i in range(300):
             restaurant = random.choice(restaurants)
             restaurant_tables = [tt for tt in all_table_types if tt.restaurant_id == restaurant.id]
             table_type = random.choice(restaurant_tables)
@@ -151,29 +151,31 @@ class Command(BaseCommand):
 
         created_reservations = list(Reservation.objects.all())
         guests = []
-        guest_count = 0
-        for reservation in created_reservations:
-
-            num_guests = random.randint(1, 3)
-            for j in range(num_guests):
+        batch_size = 5000
+        
+        self.stdout.write('Generating guests...')
+        for idx, reservation in enumerate(created_reservations):
+            for j in range(500):
                 first = random.choice(first_names)
                 last = random.choice(last_names)
                 guests.append(ReservationGuest(
                     reservation=reservation,
                     full_name=f'{first} {last}',
-                    email=f'{first.lower()}.{last.lower()}{random.randint(1,99)}@example.com',
+                    email=f'{first.lower()}.{last.lower()}{random.randint(1,99999)}@example.com',
                     phone=f'+1-555-{random.randint(1000,9999)}',
                     dietary_notes=random.choice(['', '', '', 'Vegetarian', 'Vegan', 'Gluten-free', 'No dairy']),
                     is_primary=(j == 0),
                 ))
-                guest_count += 1
-                if guest_count >= 550:
-                    break
-            if guest_count >= 550:
-                break
+            
+            if len(guests) >= batch_size:
+                ReservationGuest.objects.bulk_create(guests)
+                guests = []
+                self.stdout.write(f'  Created { (idx + 1) * 500 } guests so far...')
 
-        ReservationGuest.objects.bulk_create(guests)
-        self.stdout.write(f'  Created {len(guests)} guests')
+        if guests:
+            ReservationGuest.objects.bulk_create(guests)
+
+        self.stdout.write('  Created 150000 guests')
 
         self.stdout.write(self.style.SUCCESS(
             f'Seed complete: {len(restaurants)} restaurants, '
