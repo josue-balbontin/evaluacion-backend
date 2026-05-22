@@ -94,3 +94,7 @@ Alternativamente, si tienes tu entorno virtual configurado localmente, simplemen
 **De qué estoy más orgulloso**: Lograr separar Redis a través de un decorador para así no tener que implementarla en cada clase, como se nos mostró en la práctica de FastAPI. Además, estoy orgulloso de haber implementado lo requerido en el tiempo dado, aunque con algunas falencias como parte de separación y entendimiento del negocio que creo que me faltó.
 
 **De qué estoy menos feliz**: Me cuesta mucho programar en inglés porque, más que todo, me olvido qué decía o qué otra cosa tenía implementada más fácilmente cuando es ese idioma, y lo mismo con la base de datos (me olvido cómo se llaman o si están; es como si tardara un rato en entender). Además, otra cosa que no me gustó es cómo me quedó el código, especialmente del servicio que se pidió implementar en mi caso (time-window filtering), ya que contiene mucha lógica a mi parecer y se pudiera haber separado mejor. También no estoy muy feliz con la organización de las clases; creo que eso es un punto de mejora. Otra falencia que me di cuenta es que me cuesta implementar la lógica de FastAPI porque me tardo un rato en saber dónde empezar, especialmente si me dieron un frontend ya hecho y me tengo que adaptar a ese.
+
+
+
+## IMPLEMENTACION DEFENSA

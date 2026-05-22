@@ -132,6 +132,23 @@ class restaurantRepository(AbstractRepository, AbstractSearch):
         
     async def get_restaurant_detail(self, restaurant_id: UUID):
         return await self.get_by_id(restaurant_id)
+    
+    @decorator_cache('popular_restaurants', 300)
+    async def get_popular_restaurants(self, start_date , end_date , timezone: str):
+        timezone = 'UTC'
+        query = """
+            SELECT *
+            FROM content.restaurant as r
+            INNER JOIN content.reservation as res ON r.id = res.restaurant_id
+            where res.reservation_time >= $1 AND res.reservation_time <= $2
+        """
+
+        async with self.conexion.acquire() as connection:
+            rows = await connection.fetch(query, start_date, end_date)
+            return [(dict(row)) for row in rows]
+        
+        
+
 
 
 def get_restaurant_repository(

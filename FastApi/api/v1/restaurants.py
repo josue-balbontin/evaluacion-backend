@@ -13,6 +13,9 @@ router = APIRouter()
 root = 'restaurants'
 
 
+
+
+
 @router.get(f'/{root}/search/', response_model=list[Restaurant])
 @limiter.limit(RATE_LIMIT)
 async def search_restaurants(
@@ -23,6 +26,15 @@ async def search_restaurants(
     service: restaurantService = Depends(get_restaurant_service),
 ):
     return await service.search_restaurants(query, limit, offset)
+
+
+
+@router.get(f'/{root}/popular' )
+async def get_popular_restaurants(request: Request, period : str ,tz :  str = Query('UTC') , service: restaurantService = Depends(get_restaurant_service)):
+    result =  await service.get_popular_restaurants(period, tz)
+    if not result:
+        raise HTTPException(status_code=404, detail='No popular restaurants found for the given period and timezone')
+    return result
 
 
 @router.get(f'/{root}/', response_model=list[Restaurant])
@@ -49,3 +61,5 @@ async def get_restaurant_detail(
     if not result:
         raise HTTPException(status_code=404, detail='restaurant not found')
     return result
+
+
