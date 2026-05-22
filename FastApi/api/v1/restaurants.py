@@ -1,10 +1,12 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from schemas.Restaurant import Restaurant, RestaurantDetail
 from services.restaurantService import restaurantService, get_restaurant_service
+from fastapi_core.limiter import limiter
+from fastapi_core.config import RATE_LIMIT
 
 router = APIRouter()
 
@@ -12,7 +14,9 @@ root = 'restaurants'
 
 
 @router.get(f'/{root}/search/', response_model=list[Restaurant])
+@limiter.limit(RATE_LIMIT)
 async def search_restaurants(
+    request: Request,
     query: str = Query(..., min_length=1),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -22,7 +26,9 @@ async def search_restaurants(
 
 
 @router.get(f'/{root}/', response_model=list[Restaurant])
+@limiter.limit(RATE_LIMIT)
 async def list_restaurants(
+    request: Request,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     name: Optional[str] = None,
@@ -33,7 +39,9 @@ async def list_restaurants(
 
 
 @router.get(f'/{root}/{{restaurant_id}}', response_model=RestaurantDetail)
+@limiter.limit(RATE_LIMIT)
 async def get_restaurant_detail(
+    request: Request,
     restaurant_id: UUID,
     service: restaurantService = Depends(get_restaurant_service),
 ):

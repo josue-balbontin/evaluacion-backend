@@ -16,6 +16,9 @@ load_dotenv(dotenv_path=ENV_PATH, override=False)
 # Project name. Used in Swagger documentation
 PROJECT_NAME = os.getenv('PROJECT_NAME', 'FastAPI Application')
 
+# Rate limiting settings
+RATE_LIMIT = os.getenv('RATE_LIMIT', '30/minute')
+
 # Redis settings
 REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
 REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))

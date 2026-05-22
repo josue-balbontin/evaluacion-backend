@@ -12,8 +12,11 @@ from fastapi_core.logger import LOGGING
 
 from db import redis
 
-
 from api.v1 import healthz
+
+from fastapi_core.limiter import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 
 @asynccontextmanager
@@ -33,6 +36,9 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
     lifespan=lifespan,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 if __name__ == '__main__':
     # The application can be launched with the command
