@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import List, Optional, Any
 from uuid import UUID
 
@@ -134,14 +135,15 @@ class restaurantRepository(AbstractRepository, AbstractSearch):
         return await self.get_by_id(restaurant_id)
     
     @decorator_cache('popular_restaurants', 300)
-    async def get_popular_restaurants(self, start_date , end_date , timezone: str):
-        timezone = 'UTC'
+    async def get_popular_restaurants(self, start_date : datetime , end_date : datetime , timezone: str):
+
         query = """
             SELECT *
             FROM content.restaurant as r
             INNER JOIN content.reservation as res ON r.id = res.restaurant_id
             where res.reservation_time >= $1 AND res.reservation_time <= $2
         """
+
 
         async with self.conexion.acquire() as connection:
             rows = await connection.fetch(query, start_date, end_date)

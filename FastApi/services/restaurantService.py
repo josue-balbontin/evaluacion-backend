@@ -42,19 +42,19 @@ class restaurantService:
         return RestaurantDetail(**data)
     
 
-    def _get_window(self, window: str, tz: str) -> tuple[date, date]:
+    def _get_window(self, window: str, tz: str) -> tuple[datetime, datetime]:
         try:
             zone = ZoneInfo(tz)
         except Exception as exc:
             raise HTTPException(status_code=400, detail='invalid timezone') from exc
 
-        today = datetime.now(zone).date()
+        now = datetime.now(zone)
         if window == '7d':
-            return today, today + timedelta(days=7)
+            return now, now + timedelta(days=7)
         if window == '30d':
-            return today, today + timedelta(days=30)
+            return now, now + timedelta(days=30)
         if window == '90d':
-            return today, today + timedelta(days=90)
+            return now, now + timedelta(days=90)
         raise HTTPException(status_code=400, detail='invalid window')
 
     
