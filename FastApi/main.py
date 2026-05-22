@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from api.v1 import menu, restaurants, tables
+from api.v1 import menu, reservations, restaurants, tables
 from db.postgress import close_db_connection_pool, get_db_connection_pool
 from core import config
 from redis.asyncio import Redis
@@ -67,3 +67,5 @@ app.include_router(tables.router, prefix='/api/v1', tags=['tables'])
 app.include_router(menu.router, prefix='/api/v1', tags=['menu'])
 
 app.include_router(restaurants.router, prefix='/api/v1', tags=['restaurants'])
+
+app.include_router(reservations.router, prefix='/api/v1', tags=['reservations'])
