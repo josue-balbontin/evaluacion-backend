@@ -7,8 +7,6 @@ from fastapi import Depends
 from db.postgress import get_db_connection_pool
 from repositories.abstract.repository import AbstractRepository
 
-TIME_SLOTS = [time(18, 0), time(19, 30), time(21, 0)]
-
 
 class reservationsRepository(AbstractRepository):
 
@@ -21,14 +19,12 @@ class reservationsRepository(AbstractRepository):
     async def list_all(self, limit: int, offset: int, **kwargs) -> List[Any]:
         return []
 
-    async def get_availability(
+    async def get_availability_data(
         self,
         date_value: date,
-        time_value: Optional[time],
-        party: int,
+        slots: List[time],
         table_type: Optional[UUID],
-    ) -> List[Dict]:
-        slots = [time_value] if time_value else TIME_SLOTS
+    ) -> Tuple[List[dict], List[dict]]:
 
         table_query = """
             SELECT id, name, seats, quantity, price_per_seat
@@ -53,32 +49,7 @@ class reservationsRepository(AbstractRepository):
             table_rows = await connection.fetch(table_query, *params)
             reservation_rows = await connection.fetch(reservation_query, date_value, slots)
 
-        reserved_map: Dict[Tuple[UUID, time], int] = {}
-        for row in reservation_rows:
-            reserved_map[(row['table_type_id'], row['reservation_time'])] = int(row['reserved'] or 0)
-
-        results = []
-        for row in table_rows:
-            seats = int(row.get('seats') or 0)
-            quantity = int(row.get('quantity') or 1)
-            capacity = seats * quantity
-            for slot in slots:
-                reserved = reserved_map.get((row['id'], slot), 0)
-                available = max(capacity - reserved, 0)
-                if party > available:
-                    available = 0
-                results.append(
-                    {
-                        'time': slot.strftime('%H:%M'),
-                        'table_type': row['id'],
-                        'table_type_name': row.get('name') or 'Table',
-                        'seats': capacity,
-                        'available_seats': available,
-                        'price_per_seat': row.get('price_per_seat'),
-                    }
-                )
-
-        return results
+        return [dict(row) for row in table_rows], [dict(row) for row in reservation_rows]
 
 
 def get_reservations_repository(
